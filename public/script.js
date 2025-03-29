@@ -1,14 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
-    fetchCars();
+    loadAvailableCars();
 });
 
-async function fetchCars() {
-    const response = await fetch("http://localhost:3000/cars");
+async function loadAvailableCars() {
+    const response = await fetch('http://localhost:3000/available-cars');
     const cars = await response.json();
 
-    const carSelect = document.getElementById("cars");
-    carSelect.innerHTML = cars.map(car => `<option value="${car.CarID}">${car.Brand} ${car.Model}</option>`).join("");
+    const selectElement = document.getElementById('cars');
+    selectElement.innerHTML = '';
+
+    cars.forEach(car => {
+        const option = document.createElement('option');
+        option.value = car.CarID;
+        option.textContent = car.Model;
+        selectElement.appendChild(option);
+    });
 }
+
 
 async function reserveCar() {
     const CarID = document.getElementById("cars").value;
@@ -25,8 +33,8 @@ async function reserveCar() {
     });
 
     const result = await response.json();
-    console.log(result);  // <-- Zobacz w konsoli, co zwraca backend
     alert(result.message);
+    loadAvailableCars();
 }
 
 async function getRentals() {

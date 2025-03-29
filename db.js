@@ -16,11 +16,11 @@ const config = {
 const poolPromise = new sql.ConnectionPool(config)
     .connect()
     .then(pool => {
-        console.log("✔ Połączono z bazą danych MSSQL");
+        console.log("Connection estabilished");
         return pool;
     })
     .catch(err => {
-        console.error("❌ Błąd połączenia z bazą danych: ", err);
+        console.error("Connection failed: ", err);
     });
 
 module.exports = { sql, poolPromise };

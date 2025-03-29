@@ -8,20 +8,26 @@ app.use(express.json());
 app.use(cors());
 
 
-
-
-// wyswietla sie pusta tablica w terminalu ( dobrze) ale nie na stronie
-
-app.get('/cars', async (req, res) => {
+app.get('/available-cars', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.request().query('SELECT * FROM Cars');
+
+        const result = await pool.request().query(`
+            SELECT c.CarID, c.Model
+            FROM Cars c
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Rentals r 
+                WHERE r.CarID = c.CarID 
+                AND r.EndDate >= GETDATE() 
+            )
+        `);
+
         res.json(result.recordset);
     } catch (error) {
-        console.error('Błąd zapytania:', error);
-        res.status(500).json({ error: 'Błąd połączenia z bazą danych' });
+        res.status(500).json({ error: error.message });
     }
 });
+
 
 app.get('/customers', async (req, res) => {
     try {
@@ -34,23 +40,23 @@ app.get('/customers', async (req, res) => {
     }
 });
 
-// Endpoint: Dodaj wypożyczenie
+
 app.post('/rentals', async (req, res) => {
     try {
         const { CarID, CustomerName, Email, Phone, StartDate, EndDate } = req.body;
         const pool = await poolPromise;
 
-        // 1️⃣ Sprawdź, czy klient już istnieje
+        // Check if the customer already exists
         const customerCheck = await pool.request()
             .input('Email', sql.VarChar, Email)
             .query('SELECT CustomerID FROM Customers WHERE Email = @Email');
 
         let CustomerID;
         if (customerCheck.recordset.length > 0) {
-            // Klient już istnieje, pobierz jego ID
+            // Client exists
             CustomerID = customerCheck.recordset[0].CustomerID;
         } else {
-            // Klient nie istnieje, dodaj go
+            // Client doesn't exist
             const customerResult = await pool.request()
                 .input('Name', sql.VarChar, CustomerName)
                 .input('Email', sql.VarChar, Email)
@@ -60,7 +66,6 @@ app.post('/rentals', async (req, res) => {
             CustomerID = customerResult.recordset[0].CustomerID;
         }
 
-        // 2️⃣ Dodaj wypożyczenie
         await pool.request()
             .input('CarID', sql.Int, CarID)
             .input('CustomerID', sql.Int, CustomerID)
@@ -74,7 +79,7 @@ app.post('/rentals', async (req, res) => {
     }
 });
 
-// Endpoint: Pobierz wypożyczenia klienta po emailu
+
 app.get('/rentals', async (req, res) => {
     try {
         const { email } = req.query;
