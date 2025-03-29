@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wypożyczalnia Samochodów</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Wybierz samochód</h1>
+    
+    <label for="cars">Samochód:</label>
+    <select id="cars"></select>
+
+    <label for="startDate">Data wypożyczenia:</label>
+    <input type="date" id="startDate">
+
+    <label for="endDate">Data zwrotu:</label>
+    <input type="date" id="endDate">
+
+    <h2>Dane klienta</h2>
+    <input type="text" id="name" placeholder="Imię i nazwisko">
+    <input type="email" id="email" placeholder="Email">
+    <input type="tel" id="phone" placeholder="Telefon">
+
+    <button onclick="reserveCar()">Zarezerwuj</button>
+
+    <h2>Twoje wypożyczenia</h2>
+    <input type="email" id="searchEmail" placeholder="Wpisz email, aby sprawdzić wypożyczenia">
+    <button onclick="getRentals()">Pokaż moje wypożyczenia</button>
+
+    <ul id="rentals"></ul>
+
+    <script src="script.js"></script>
+</body>
+</html>
