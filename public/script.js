@@ -1,25 +1,51 @@
 document.addEventListener("DOMContentLoaded", () => {
-    loadAvailableCars();
+    loadCarModels();
 });
 
+async function loadCarModels() {
+    try {
+        console.log('Ładowanie modeli samochodów...');
+        const response = await fetch('http://localhost:3000/models');
+        console.log('Odpowiedź z API:', response);
+        
+        if (!response.ok) {
+            throw new Error(`Błąd HTTP: ${response.status}`);
+        }
+
+        const models = await response.json();
+        console.log('Dane modeli:', models);
+
+        const select = document.getElementById('carModelSelect');
+        select.innerHTML = models.map(m => `<option value="${m.Model}">${m.Brand} ${m.Model}</option>`).join('');
+
+        if (models.length > 0) {
+            loadAvailableCars();
+        }
+    } catch (error) {
+        console.error('Błąd wczytywania modeli:', error);
+    }
+}
+
+
 async function loadAvailableCars() {
-    const response = await fetch('http://localhost:3000/available-cars');
-    const cars = await response.json();
+    const model = document.getElementById('carModelSelect').value;
+    
+    try {
+        const response = await fetch(`http://localhost:3000/available-cars?model=${encodeURIComponent(model)}`);
+        const cars = await response.json();
+        console.log(cars)
 
-    const selectElement = document.getElementById('cars');
-    selectElement.innerHTML = '';
-
-    cars.forEach(car => {
-        const option = document.createElement('option');
-        option.value = car.CarID;
-        option.textContent = car.Model;
-        selectElement.appendChild(option);
-    });
+        const select = document.getElementById('carOptionsSelect');
+        select.innerHTML = cars.map(c => `<option value="${c.CarID}">${c.Year} - ${c.Color}</option>`).join('');
+    } catch (error) {
+        console.error('Błąd wczytywania samochodów:', error);
+    }
 }
 
 
 async function reserveCar() {
-    const CarID = document.getElementById("cars").value;
+    const CarID = document.getElementById("carOptionsSelect").value;
+    console.log(CarID)
     const CustomerName = document.getElementById("name").value;
     const Email = document.getElementById("email").value;
     const Phone = document.getElementById("phone").value;
@@ -45,3 +71,4 @@ async function getRentals() {
     const rentalsList = document.getElementById("rentals");
     rentalsList.innerHTML = rentals.map(r => `<li>${r.Brand} ${r.Model} - ${r.StartDate} do ${r.EndDate}</li>`).join("");
 }
+

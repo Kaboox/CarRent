@@ -8,19 +8,50 @@ app.use(express.json());
 app.use(cors());
 
 
-app.get('/available-cars', async (req, res) => {
+
+// Pobieranie unikalnych modeli samochodów
+app.get('/models', async (req, res) => {
     try {
         const pool = await poolPromise;
-
         const result = await pool.request().query(`
-            SELECT c.CarID, c.Model
+            SELECT DISTINCT c.Brand, c.Model 
             FROM Cars c
-            WHERE NOT EXISTS (
-                SELECT 1 FROM Rentals r 
-                WHERE r.CarID = c.CarID 
-                AND r.EndDate >= GETDATE() 
+            WHERE EXISTS (
+                SELECT 1 FROM Cars c2
+                WHERE c2.Model = c.Model 
+                AND NOT EXISTS (
+                    SELECT 1 FROM Rentals r 
+                    WHERE r.CarID = c2.CarID 
+                    AND r.EndDate >= GETDATE()
+                )
             )
         `);
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+// Pobieranie dostępnych egzemplarzy dla wybranego modelu
+app.get('/available-cars', async (req, res) => {
+    try {
+        const { model } = req.query;
+        const pool = await poolPromise;
+
+        const result = await pool.request()
+            .input('Model', sql.VarChar, model)
+            .query(`
+                SELECT c.CarID, c.Year, c.Color
+                FROM Cars c
+                WHERE c.Model = @Model 
+                AND NOT EXISTS (
+                    SELECT 1 FROM Rentals r 
+                    WHERE r.CarID = c.CarID 
+                    AND r.EndDate >= GETDATE()
+                )
+            `);
 
         res.json(result.recordset);
     } catch (error) {

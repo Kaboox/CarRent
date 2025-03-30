@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wypożyczalnia Samochodów</title>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Wybierz samochód</h1>
     
     <label for="cars">Samochód:</label>
-    <select id="cars"></select>
+    <select id="carModelSelect" onchange="loadAvailableCars()"></select>
+    <select id="carOptionsSelect"></select>
 
     <label for="startDate">Data wypożyczenia:</label>
     <input type="date" id="startDate">
